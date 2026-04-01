@@ -28,7 +28,8 @@ Configure `config/smsapi.php`:
 
 ```php
 return [
-    'base_url' => env('SMSAPI_BASE_URL', 'https://api.smsapi.example'),
+    'service' => env('SMSAPI_SERVICE', 'pl'),
+    'uri' => env('SMSAPI_URI'),
     'token' => env('SMSAPI_TOKEN'),
     'from' => env('SMSAPI_FROM'),
     'timeout' => (int) env('SMSAPI_TIMEOUT', 10),
@@ -38,11 +39,18 @@ return [
 Or set only `.env` values:
 
 ```env
-SMSAPI_BASE_URL=https://api.smsapi.example
+SMSAPI_SERVICE=pl
+SMSAPI_URI=
 SMSAPI_TOKEN=your-token
 SMSAPI_FROM=YourBrand
 SMSAPI_TIMEOUT=10
 ```
+
+The package uses the official `smsapi/php-client` v3 adapter internally.
+
+- `service=pl` uses `smsapiPlService()`
+- `service=com` uses `smsapiComService()`
+- if `uri` is set, the package uses the matching `*ServiceWithUri()` variant
 
 ## Usage
 
