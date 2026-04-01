@@ -5,7 +5,7 @@ This package makes it easy to send notifications using SMSAPI with Laravel 13.
 ## Installation
 
 ```bash
-composer require notification-channels/smsapi
+composer require patrykstaniewski/laravel-smsapi-notification-channel
 ```
 
 If you are using Laravel without package auto-discovery, add the service provider to `config/app.php`:
@@ -51,6 +51,22 @@ The package uses the official `smsapi/php-client` v3 adapter internally.
 - `service=pl` uses `smsapiPlService()`
 - `service=com` uses `smsapiComService()`
 - if `uri` is set, the package uses the matching `*ServiceWithUri()` variant
+
+## Response DTO
+
+The channel returns `NotificationChannels\SmsApi\Dto\SmsApiResponse`.
+
+For real SMSAPI sends the package maps the response returned by `smsapi/php-client` and normalizes it to:
+
+- `statusCode`: local adapter status, currently `200` when the SMSAPI client accepted the send request
+- `decoded.id`: SMS identifier
+- `decoded.points`: charged points
+- `decoded.number`: recipient number
+- `decoded.status`: SMS status returned by SMSAPI
+- `decoded.idx`: external identifier if present
+- `decoded.date_sent`: ISO-8601 sent date if available
+
+This is adapter-level data, not the raw HTTP response from SMSAPI.
 
 ## Usage
 

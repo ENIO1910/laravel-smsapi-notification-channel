@@ -1,5 +1,5 @@
 {
-  "name": "notification-channels/smsapi",
+  "name": "patrykstaniewski/laravel-smsapi-notification-channel",
   "description": "A Laravel Notification Channel for SMSAPI",
   "homepage": "https://github.com/patrykstaniewski/laraSmsApi",
   "type": "library",
@@ -53,6 +53,6 @@
       ]
     }
   },
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "prefer-stable": true
 }
