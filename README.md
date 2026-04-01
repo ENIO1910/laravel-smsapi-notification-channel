@@ -74,6 +74,8 @@ public function routeNotificationForSmsApi(?Notification $notification = null): 
 }
 ```
 
+This method name is intentional: the package uses the `smsApi` channel name so Laravel resolves `routeNotificationForSmsApi()`.
+
 Or provide it directly in the message:
 
 ```php

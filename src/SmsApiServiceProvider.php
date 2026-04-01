@@ -26,7 +26,7 @@ class SmsApiServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/smsapi.php', 'smsapi');
 
-        Notification::extend('smsapi', function (Container $app): SmsApiChannel {
+        Notification::extend('smsApi', function (Container $app): SmsApiChannel {
             return $app->make(SmsApiChannel::class);
         });
     }

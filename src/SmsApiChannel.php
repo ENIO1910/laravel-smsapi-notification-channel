@@ -20,7 +20,7 @@ class SmsApiChannel
         }
 
         if ($message->recipientNotGiven()) {
-            $message->to($notifiable->routeNotificationFor('smsapi', $notification));
+            $message->to($notifiable->routeNotificationFor('smsApi', $notification));
         }
 
         return $this->smsApi->send($message);
