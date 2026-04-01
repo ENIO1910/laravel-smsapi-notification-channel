@@ -1,0 +1,51 @@
+{
+  "name": "notification-channels/smsapi",
+  "description": "A Laravel Notification Channel for SMSAPI",
+  "homepage": "https://github.com/patrykstaniewski/laraSmsApi",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Patryk Staniewski"
+    }
+  ],
+  "require": {
+    "php": "^8.3",
+    "guzzlehttp/guzzle": "^7.0",
+    "illuminate/notifications": "^13.0",
+    "illuminate/support": "^13.0"
+  },
+  "require-dev": {
+    "mockery/mockery": "^1.6",
+    "pestphp/pest": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "NotificationChannels\\SmsApi\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "NotificationChannels\\SmsApi\\Tests\\": "tests"
+    }
+  },
+  "scripts": {
+    "test": "pest",
+    "test:coverage": "pest --coverage"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "NotificationChannels\\SmsApi\\SmsApiServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
