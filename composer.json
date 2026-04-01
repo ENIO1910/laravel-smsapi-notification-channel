@@ -16,8 +16,10 @@
     "illuminate/support": "^13.0"
   },
   "require-dev": {
+    "laravel/pint": "^1.21",
     "mockery/mockery": "^1.6",
-    "pestphp/pest": "^3.0"
+    "pestphp/pest": "^3.0",
+    "rector/rector": "^2.1"
   },
   "autoload": {
     "psr-4": {
@@ -30,6 +32,10 @@
     }
   },
   "scripts": {
+    "format": "pint",
+    "format:test": "pint --test",
+    "rector": "rector process",
+    "rector:dry": "rector process --dry-run",
     "test": "pest",
     "test:coverage": "pest --coverage"
   },

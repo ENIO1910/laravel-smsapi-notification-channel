@@ -1,25 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NotificationChannels\SmsApi;
 
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use NotificationChannels\SmsApi\Contracts\SmsApi as SmsApiContract;
 use NotificationChannels\SmsApi\Dto\SmsApiRequest;
 use NotificationChannels\SmsApi\Dto\SmsApiResponse;
 use NotificationChannels\SmsApi\Exceptions\CouldNotSendNotification;
 
-class SmsApi
+final readonly class SmsApi implements SmsApiContract
 {
-    public function __construct(protected Client $httpClient)
-    {
-    }
+    public function __construct(private Client $httpClient) {}
 
     public function send(SmsApiMessage $message): SmsApiResponse
     {
         $config = config('smsapi', []);
         $token = $config['token'] ?? null;
-        $baseUrl = rtrim((string) ($config['base_url'] ?? 'https://api.smsapi.example'), '/');
+        $baseUrl = mb_rtrim((string) ($config['base_url'] ?? 'https://api.smsapi.example'), '/');
         $timeout = (int) ($config['timeout'] ?? 10);
         $request = $message
             ->toDto()
@@ -36,13 +37,13 @@ class SmsApi
         return $this->sendRequest($request, $baseUrl, (string) $token, $timeout);
     }
 
-    protected function sendRequest(SmsApiRequest $request, string $baseUrl, string $token, int $timeout): SmsApiResponse
+    private function sendRequest(SmsApiRequest $request, string $baseUrl, string $token, int $timeout): SmsApiResponse
     {
         try {
-            $response = $this->httpClient->post($baseUrl . '/sms', [
+            $response = $this->httpClient->post($baseUrl.'/sms', [
                 'headers' => [
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . $token,
+                    'Authorization' => 'Bearer '.$token,
                 ],
                 'json' => $request->toArray(),
                 'timeout' => $timeout,

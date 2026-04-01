@@ -1,28 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\SmsApi\Contracts\SmsApi as SmsApiContract;
 use NotificationChannels\SmsApi\Dto\SmsApiResponse;
-use NotificationChannels\SmsApi\SmsApi;
 use NotificationChannels\SmsApi\SmsApiChannel;
 use NotificationChannels\SmsApi\SmsApiMessage;
 
-beforeEach(function () {
-    $this->smsApi = Mockery::mock(SmsApi::class);
+beforeEach(function (): void {
+    $this->smsApi = Mockery::mock(SmsApiContract::class);
 });
 
-it('can send a notification', function () {
-    $message = SmsApiMessage::create('Test message');
-
+it('can send a notification', function (): void {
     $this->smsApi
         ->shouldReceive('send')
         ->once()
-        ->with(Mockery::on(function (SmsApiMessage $sentMessage): bool {
-            return $sentMessage->toArray() === [
-                'message' => 'Test message',
-                'to' => '+48123123123',
-            ];
-        }))
+        ->with(Mockery::on(fn (SmsApiMessage $sentMessage): bool => $sentMessage->toArray() === [
+            'message' => 'Test message',
+            'to' => '+48123123123',
+        ]))
         ->andReturn(new SmsApiResponse(200, [], '{"ok":true}', ['ok' => true]));
 
     $channel = new SmsApiChannel($this->smsApi);
@@ -34,7 +32,7 @@ it('can send a notification', function () {
         ->and($response->decoded)->toBe(['ok' => true]);
 });
 
-it('returns null when notification does not return a SmsApiMessage', function () {
+it('returns null when notification does not return a SmsApiMessage', function (): void {
     $this->smsApi
         ->shouldNotReceive('send');
 
@@ -44,13 +42,11 @@ it('returns null when notification does not return a SmsApiMessage', function ()
     expect($response)->toBeNull();
 });
 
-it('can use explicit recipient from message', function () {
+it('can use explicit recipient from message', function (): void {
     $this->smsApi
         ->shouldReceive('send')
         ->once()
-        ->with(Mockery::on(function (SmsApiMessage $sentMessage): bool {
-            return $sentMessage->toArray()['to'] === '+48999111222';
-        }))
+        ->with(Mockery::on(fn (SmsApiMessage $sentMessage): bool => $sentMessage->toArray()['to'] === '+48999111222'))
         ->andReturn(new SmsApiResponse(200));
 
     $channel = new SmsApiChannel($this->smsApi);
@@ -59,22 +55,22 @@ it('can use explicit recipient from message', function () {
     expect($response->statusCode)->toEqual(200);
 });
 
-class TestNotifiable
+final class TestNotifiable
 {
     use Notifiable;
 
-    public function routeNotificationForSmsApi(?Notification $notification = null): string
+    public function routeNotificationForSmsApi(): string
     {
         return '+48123123123';
     }
 }
 
-class TestNotifiableWithoutRoute
+final class TestNotifiableWithoutRoute
 {
     use Notifiable;
 }
 
-class TestNotification extends Notification
+final class TestNotification extends Notification
 {
     public function toSmsApi($notifiable): SmsApiMessage
     {
@@ -82,7 +78,7 @@ class TestNotification extends Notification
     }
 }
 
-class InvalidTestNotification extends Notification
+final class InvalidTestNotification extends Notification
 {
     public function toSmsApi($notifiable): array
     {
@@ -90,7 +86,7 @@ class InvalidTestNotification extends Notification
     }
 }
 
-class TestNotificationWithToParam extends Notification
+final class TestNotificationWithToParam extends Notification
 {
     public function toSmsApi($notifiable): SmsApiMessage
     {

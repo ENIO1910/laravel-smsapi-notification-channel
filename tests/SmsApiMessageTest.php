@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use NotificationChannels\SmsApi\Dto\SmsApiRequest;
 use NotificationChannels\SmsApi\SmsApiMessage;
 
-it('can build a payload', function () {
+it('can build a payload', function (): void {
     $payload = SmsApiMessage::create('Example')
         ->to('+48123123123')
         ->from('Laravel13')
@@ -18,7 +20,7 @@ it('can build a payload', function () {
     ]);
 });
 
-it('uses default from when message from is not set', function () {
+it('uses default from when message from is not set', function (): void {
     $payload = SmsApiMessage::create('Example')
         ->to('+48123123123')
         ->toArray('DefaultSender');
@@ -30,7 +32,7 @@ it('uses default from when message from is not set', function () {
     ]);
 });
 
-it('can convert a message to dto', function () {
+it('can convert a message to dto', function (): void {
     $dto = SmsApiMessage::create('Example')
         ->to('+48123123123')
         ->from('Laravel13')

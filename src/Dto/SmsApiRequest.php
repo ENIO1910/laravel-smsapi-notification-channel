@@ -1,16 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NotificationChannels\SmsApi\Dto;
 
-final class SmsApiRequest
+final readonly class SmsApiRequest
 {
     public function __construct(
-        public readonly string $message,
-        public readonly ?string $to = null,
-        public readonly ?string $from = null,
-        public readonly array $attributes = [],
-    ) {
-    }
+        public string $message,
+        public ?string $to = null,
+        public ?string $from = null,
+        public array $attributes = [],
+    ) {}
 
     public function withRecipient(string $recipient): self
     {

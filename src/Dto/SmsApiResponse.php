@@ -1,18 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NotificationChannels\SmsApi\Dto;
 
 use Psr\Http\Message\ResponseInterface;
 
-final class SmsApiResponse
+final readonly class SmsApiResponse
 {
     public function __construct(
-        public readonly int $statusCode,
-        public readonly array $headers = [],
-        public readonly ?string $body = null,
-        public readonly array $decoded = [],
-    ) {
-    }
+        public int $statusCode,
+        public array $headers = [],
+        public ?string $body = null,
+        public array $decoded = [],
+    ) {}
 
     public static function fromPsrResponse(ResponseInterface $response): self
     {

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NotificationChannels\SmsApi\Exceptions;
 
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 
-class CouldNotSendNotification extends Exception
+final class CouldNotSendNotification extends Exception
 {
     public static function smsApiRespondedWithAnError(ClientException $exception): self
     {
@@ -16,12 +18,12 @@ class CouldNotSendNotification extends Exception
         $statusCode = $exception->getResponse()->getStatusCode();
         $description = $exception->getMessage();
 
-        return new self("SMSAPI responded with an error `{$statusCode} - {$description}`.");
+        return new self(sprintf('SMSAPI responded with an error `%d - %s`.', $statusCode, $description));
     }
 
     public static function couldNotCommunicateWithSmsApi(Exception $exception): self
     {
-        return new self("The communication with SMSAPI failed. `{$exception->getMessage()}`.");
+        return new self(sprintf('The communication with SMSAPI failed. `%s`.', $exception->getMessage()));
     }
 
     public static function smsApiTokenMissing(): self

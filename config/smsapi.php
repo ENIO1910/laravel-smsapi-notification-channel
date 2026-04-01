@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'base_url' => env('SMSAPI_BASE_URL', 'https://api.smsapi.example'),
     'token' => env('SMSAPI_TOKEN'),

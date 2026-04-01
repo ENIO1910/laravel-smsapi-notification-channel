@@ -1,15 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NotificationChannels\SmsApi;
 
 use Illuminate\Notifications\Notification;
+use NotificationChannels\SmsApi\Contracts\SmsApi as SmsApiContract;
 use NotificationChannels\SmsApi\Dto\SmsApiResponse;
 
-class SmsApiChannel
+final readonly class SmsApiChannel
 {
-    public function __construct(protected SmsApi $smsApi)
-    {
-    }
+    public function __construct(private SmsApiContract $smsApi) {}
 
     public function send($notifiable, Notification $notification): ?SmsApiResponse
     {

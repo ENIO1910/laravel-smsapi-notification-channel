@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NotificationChannels\SmsApi;
 
 use NotificationChannels\SmsApi\Dto\SmsApiRequest;
 
-class SmsApiMessage
+final class SmsApiMessage
 {
-    protected ?string $recipient = null;
+    private ?string $recipient = null;
 
-    protected ?string $from = null;
+    private ?string $from = null;
 
-    protected array $payload = [];
-
-    public static function create(string $message = ''): self
-    {
-        return new self($message);
-    }
+    private array $payload = [];
 
     public function __construct(string $message = '')
     {
         $this->payload = [
             'message' => $message,
         ];
+    }
+
+    public static function create(string $message = ''): self
+    {
+        return new self($message);
     }
 
     public function to(string $recipient): self
