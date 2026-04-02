@@ -155,6 +155,9 @@ If you use `to()`, `routeNotificationForSmsApi()` is not required for that notif
 
 To send an MMS, switch the message to MMS mode with `mms($subject, $smil)`:
 
+- The SMIL payload should use the `SMIL 1.0` standard.
+- If the MMS references files by path or URL, that path must be publicly accessible.
+
 ```php
 use Illuminate\Notifications\Notification;
 use NotificationChannels\SmsApi\SmsApiChannel;
