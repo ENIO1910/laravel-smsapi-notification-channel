@@ -1,6 +1,6 @@
 # SMSAPI Notification Channel for Laravel
 
-This package makes it easy to send notifications using SMSAPI with Laravel 13.
+This package makes it easy to send notifications using SMSAPI with Laravel 11, 12, and 13.
 
 ## Installation
 
@@ -89,9 +89,31 @@ class InvoicePaid extends Notification
 }
 ```
 
-Instead of adding `to()` to the message, you can define the recipient on the notifiable model:
+To send the notification, call `notify()` on your model:
 
 ```php
+$user->notify(new InvoicePaid());
+```
+
+The model you call `notify()` on must use the `Illuminate\Notifications\Notifiable` trait.
+
+Example:
+
+```php
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+}
+```
+
+If you do not pass the recipient directly with `to()`, you must define the recipient on the notifiable model:
+
+```php
+use Illuminate\Notifications\Notification;
+
 public function routeNotificationForSmsApi(?Notification $notification = null): string
 {
     return $this->phone;
@@ -100,10 +122,30 @@ public function routeNotificationForSmsApi(?Notification $notification = null): 
 
 This method name is intentional: the package uses the `smsApi` channel name so Laravel resolves `routeNotificationForSmsApi()`.
 
-Or provide it directly in the message:
+In practice, a complete notifiable model can look like this:
+
+```php
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    public function routeNotificationForSmsApi(?Notification $notification = null): string
+    {
+        return $this->phone;
+    }
+}
+```
+
+Or provide the recipient directly in the message:
 
 ```php
 return SmsApiMessage::create('Faktura została opłacona.')
     ->to('+48123123123')
     ->from('MyBrand');
 ```
+
+If you use `to()`, `routeNotificationForSmsApi()` is not required for that notification.
