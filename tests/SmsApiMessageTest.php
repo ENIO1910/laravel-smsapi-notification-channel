@@ -47,6 +47,36 @@ it('can convert a message to dto', function (): void {
         ->and($dto->attributes)->toBe(['encoding' => 'utf-8']);
 });
 
+it('can build a bulk sms payload', function (): void {
+    $payload = SmsApiMessage::create('Example')
+        ->toMany(['+48123123123', '+48999111222'])
+        ->from('Laravel13')
+        ->set('test', true)
+        ->toArray();
+
+    expect($payload)->toEqual([
+        'message' => 'Example',
+        'test' => true,
+        'from' => 'Laravel13',
+        'to' => ['+48123123123', '+48999111222'],
+    ]);
+});
+
+it('can convert a bulk sms message to dto', function (): void {
+    $dto = SmsApiMessage::create('Example')
+        ->toMany(['+48123123123', '+48999111222'])
+        ->from('Laravel13')
+        ->set('encoding', 'utf-8')
+        ->toDto();
+
+    expect($dto)->toBeInstanceOf(SmsApiRequest::class)
+        ->and($dto->type)->toBe('sms')
+        ->and($dto->message)->toBe('Example')
+        ->and($dto->to)->toBe(['+48123123123', '+48999111222'])
+        ->and($dto->from)->toBe('Laravel13')
+        ->and($dto->attributes)->toBe(['encoding' => 'utf-8']);
+});
+
 it('can build an mms payload', function (): void {
     $payload = SmsApiMessage::create()
         ->to('+48123123123')

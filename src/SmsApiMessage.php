@@ -10,7 +10,7 @@ final class SmsApiMessage
 {
     private string $type = 'sms';
 
-    private ?string $recipient = null;
+    private string|array|null $recipient = null;
 
     private ?string $from = null;
 
@@ -35,6 +35,13 @@ final class SmsApiMessage
     public function to(string $recipient): self
     {
         $this->recipient = $recipient;
+
+        return $this;
+    }
+
+    public function toMany(array $recipients): self
+    {
+        $this->recipient = array_values($recipients);
 
         return $this;
     }
@@ -69,14 +76,14 @@ final class SmsApiMessage
         return $this;
     }
 
-    public function getRecipient(): ?string
+    public function getRecipient(): string|array|null
     {
         return $this->recipient;
     }
 
     public function recipientNotGiven(): bool
     {
-        return ! $this->recipient;
+        return $this->recipient === null || $this->recipient === [];
     }
 
     public function toArray(?string $defaultFrom = null): array

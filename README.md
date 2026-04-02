@@ -151,6 +151,35 @@ return SmsApiMessage::create('Faktura została opłacona.')
 
 If you use `to()`, `routeNotificationForSmsApi()` is not required for that notification.
 
+## Bulk SMS Usage
+
+To send one SMS to many recipients in a single SMSAPI request, use `toMany()`:
+
+```php
+return SmsApiMessage::create('Faktura została opłacona.')
+    ->toMany([
+        '+48123123123',
+        '+48999111222',
+    ])
+    ->from('MyBrand');
+```
+
+You can also return an array from `routeNotificationForSmsApi()`:
+
+```php
+use Illuminate\Notifications\Notification;
+
+public function routeNotificationForSmsApi(?Notification $notification = null): array
+{
+    return [
+        '+48123123123',
+        '+48999111222',
+    ];
+}
+```
+
+Bulk sending is available for SMS messages. MMS still requires a single recipient.
+
 ## MMS Usage
 
 To send an MMS, switch the message to MMS mode with `mms($subject, $smil)`:

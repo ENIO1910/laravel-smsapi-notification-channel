@@ -158,6 +158,64 @@ it('uses smsapi com service with custom uri when configured', function (): void 
         ->and($response->decoded['status'])->toBe('OK');
 });
 
+it('can send bulk sms through smsapi pl service', function (): void {
+    $smsFeature = Mockery::mock(SmsFeature::class);
+    $service = Mockery::mock(SmsapiPlService::class);
+    $client = Mockery::mock(SmsapiClient::class);
+
+    $firstSms = new Sms();
+    $firstSms->id = 'sms-1';
+    $firstSms->points = 0.5;
+    $firstSms->number = '+48123123123';
+    $firstSms->status = 'QUEUE';
+
+    $secondSms = new Sms();
+    $secondSms->id = 'sms-2';
+    $secondSms->points = 0.7;
+    $secondSms->number = '+48999111222';
+    $secondSms->status = 'OK';
+
+    $client->shouldReceive('smsapiPlService')
+        ->once()
+        ->with('test-token')
+        ->andReturn($service);
+
+    $service->shouldReceive('smsFeature')
+        ->once()
+        ->andReturn($smsFeature);
+
+    $smsFeature->shouldReceive('sendSmss')
+        ->once()
+        ->with(Mockery::on(fn ($bag): bool => $bag->to === ['+48123123123', '+48999111222']
+            && $bag->message === 'Test message'
+            && $bag->from === 'Laravel13'
+            && $bag->encoding === 'utf-8'))
+        ->andReturn([$firstSms, $secondSms]);
+
+    $response = (new SmsApi($client))->send(
+        SmsApiMessage::create('Test message')->toMany(['+48123123123', '+48999111222'])
+    );
+
+    expect($response)->toBeInstanceOf(SmsApiResponse::class)
+        ->and($response->decoded)->toBe([
+            'count' => 2,
+            'results' => [
+                [
+                    'id' => 'sms-1',
+                    'points' => 0.5,
+                    'number' => '+48123123123',
+                    'status' => 'QUEUE',
+                ],
+                [
+                    'id' => 'sms-2',
+                    'points' => 0.7,
+                    'number' => '+48999111222',
+                    'status' => 'OK',
+                ],
+            ],
+        ]);
+});
+
 it('throws for unsupported service', function (): void {
     config()->set('smsapi.service', 'de');
 
@@ -218,4 +276,12 @@ it('throws when mms is used with smsapi com service', function (): void {
             ->to('+48123123123')
             ->mms('Invoice', '<smil/>')
     ))->toThrow(CouldNotSendNotification::class, 'MMS is only supported for the `pl` SMSAPI service');
+});
+
+it('throws when bulk sending is used with mms', function (): void {
+    expect(fn (): SmsApiResponse => (new SmsApi(Mockery::mock(SmsapiClient::class)))->send(
+        SmsApiMessage::create()
+            ->toMany(['+48123123123', '+48999111222'])
+            ->mms('Invoice', '<smil/>')
+    ))->toThrow(CouldNotSendNotification::class, 'Bulk sending is supported only for SMS messages');
 });

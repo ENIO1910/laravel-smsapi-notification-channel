@@ -9,14 +9,14 @@ final readonly class SmsApiRequest
     public function __construct(
         public string $type = 'sms',
         public string $message = '',
-        public ?string $to = null,
+        public string|array|null $to = null,
         public ?string $from = null,
         public ?string $subject = null,
         public ?string $smil = null,
         public array $attributes = [],
     ) {}
 
-    public function withRecipient(string $recipient): self
+    public function withRecipient(string|array $recipient): self
     {
         return new self(
             type: $this->type,

@@ -28,7 +28,7 @@ final class CouldNotSendNotification extends Exception
 
     public static function smsApiRecipientMissing(): self
     {
-        return new self('SMSAPI recipient is missing. Add SmsApiMessage::to() or define routeNotificationForSmsApi() on the notifiable model.');
+        return new self('SMSAPI recipient is missing. Add SmsApiMessage::to(), SmsApiMessage::toMany() or define routeNotificationForSmsApi() on the notifiable model.');
     }
 
     public static function unsupportedService(string $service): self
@@ -49,5 +49,10 @@ final class CouldNotSendNotification extends Exception
     public static function smsApiMmsPayloadIncomplete(): self
     {
         return new self('MMS payload is incomplete. Call SmsApiMessage::mms($subject, $smil) before sending.');
+    }
+
+    public static function bulkMmsNotSupported(): self
+    {
+        return new self('Bulk sending is supported only for SMS messages. MMS requires a single recipient.');
     }
 }

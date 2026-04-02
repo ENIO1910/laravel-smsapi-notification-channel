@@ -20,6 +20,7 @@
     "laravel/pint": "^1.21",
     "mockery/mockery": "^1.6",
     "pestphp/pest": "^3.0",
+    "pestphp/pest-plugin-type-coverage": "^3.6.1",
     "rector/rector": "^2.1"
   },
   "autoload": {
@@ -38,7 +39,8 @@
     "rector": "rector process",
     "rector:dry": "rector process --dry-run",
     "test": "pest",
-    "test:coverage": "pest --coverage"
+    "test:coverage": "pest --coverage",
+    "test:type-coverage": "php -d memory_limit=512M ./vendor/bin/pest --type-coverage"
   },
   "config": {
     "allow-plugins": {
