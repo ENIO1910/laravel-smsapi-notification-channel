@@ -98,6 +98,13 @@ $user->notify(new InvoicePaid());
 
 The model you call `notify()` on must use the `Illuminate\Notifications\Notifiable` trait.
 
+For on-demand notifications, you can use the channel class directly:
+
+```php
+\Illuminate\Support\Facades\Notification::route(SmsApiChannel::class, '+48123123123')
+    ->notify(new InvoicePaid());
+```
+
 Example:
 
 ```php
@@ -121,7 +128,7 @@ public function routeNotificationForSmsApi(?Notification $notification = null): 
 }
 ```
 
-This method name is intentional: the package uses the `smsApi` channel name so Laravel resolves `routeNotificationForSmsApi()`.
+This method name is kept for compatibility. The package supports `SmsApiChannel::class` for `via()` and on-demand `Notification::route()`, while model-based routing still resolves through `routeNotificationForSmsApi()`.
 
 In practice, a complete notifiable model can look like this:
 

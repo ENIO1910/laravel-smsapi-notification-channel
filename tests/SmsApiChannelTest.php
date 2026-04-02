@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\SmsApi\Contracts\SmsApi as SmsApiContract;
@@ -51,6 +52,22 @@ it('can use explicit recipient from message', function (): void {
 
     $channel = new SmsApiChannel($this->smsApi);
     $response = $channel->send(new TestNotifiableWithoutRoute, new TestNotificationWithToParam);
+
+    expect($response->statusCode)->toEqual(200);
+});
+
+it('can use on-demand recipient routed by channel class', function (): void {
+    $this->smsApi
+        ->shouldReceive('send')
+        ->once()
+        ->with(Mockery::on(fn (SmsApiMessage $sentMessage): bool => $sentMessage->toArray()['to'] === '+48777111222'))
+        ->andReturn(new SmsApiResponse(200));
+
+    $channel = new SmsApiChannel($this->smsApi);
+    $response = $channel->send(
+        (new AnonymousNotifiable)->route(SmsApiChannel::class, '+48777111222'),
+        new TestNotification,
+    );
 
     expect($response->statusCode)->toEqual(200);
 });
