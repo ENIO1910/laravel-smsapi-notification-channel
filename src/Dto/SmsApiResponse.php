@@ -45,7 +45,7 @@ final readonly class SmsApiResponse
             decoded: [
                 'count' => count($messages),
                 'results' => array_map(
-                    static fn (Sms|Mms $message): array => self::normalizeSmsData($message),
+                    self::normalizeSmsData(...),
                     $messages,
                 ),
             ],

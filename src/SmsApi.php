@@ -96,7 +96,7 @@ final readonly class SmsApi implements SmsApiContract
 
     private function createSmsBag(SmsApiRequest $request): object
     {
-        $class = $this->loadClassSuppressingDeprecations('Smsapi\\Client\\Feature\\Sms\\Bag\\SendSmsBag');
+        $class = $this->loadClassSuppressingDeprecations(\Smsapi\Client\Feature\Sms\Bag\SendSmsBag::class);
         $sms = $class::withMessage($request->to, $request->message);
 
         if ($request->from !== null) {
@@ -112,7 +112,7 @@ final readonly class SmsApi implements SmsApiContract
 
     private function createSmssBag(SmsApiRequest $request): object
     {
-        $class = $this->loadClassSuppressingDeprecations('Smsapi\\Client\\Feature\\Sms\\Bag\\SendSmssBag');
+        $class = $this->loadClassSuppressingDeprecations(\Smsapi\Client\Feature\Sms\Bag\SendSmssBag::class);
         $sms = $class::withMessage($request->to, $request->message);
 
         if ($request->from !== null) {
@@ -143,9 +143,7 @@ final readonly class SmsApi implements SmsApiContract
 
     private function loadClassSuppressingDeprecations(string $class): string
     {
-        set_error_handler(static function (int $errno): bool {
-            return $errno === E_DEPRECATED;
-        });
+        set_error_handler(static fn(int $errno): bool => $errno === E_DEPRECATED);
 
         try {
             class_exists($class);
