@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NotificationChannels\SmsApi\Dto;
 
 use Psr\Http\Message\ResponseInterface;
+use Smsapi\Client\Feature\Mms\Data\Mms;
 use Smsapi\Client\Feature\Sms\Data\Sms;
 
 final readonly class SmsApiResponse
@@ -29,7 +30,7 @@ final readonly class SmsApiResponse
         );
     }
 
-    public static function fromSmsData(Sms $sms): self
+    public static function fromSmsData(Sms|Mms $sms): self
     {
         return new self(
             statusCode: 200,

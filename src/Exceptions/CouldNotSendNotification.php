@@ -35,4 +35,19 @@ final class CouldNotSendNotification extends Exception
     {
         return new self(sprintf('Unsupported SMSAPI service `%s`. Allowed values: `pl`, `com`.', $service));
     }
+
+    public static function unsupportedMessageType(string $type): self
+    {
+        return new self(sprintf('Unsupported SMSAPI message type `%s`. Allowed values: `sms`, `mms`.', $type));
+    }
+
+    public static function mmsNotSupportedForService(string $service): self
+    {
+        return new self(sprintf('MMS is only supported for the `pl` SMSAPI service. Current service: `%s`.', $service));
+    }
+
+    public static function smsApiMmsPayloadIncomplete(): self
+    {
+        return new self('MMS payload is incomplete. Call SmsApiMessage::mms($subject, $smil) before sending.');
+    }
 }

@@ -40,8 +40,41 @@ it('can convert a message to dto', function (): void {
         ->toDto();
 
     expect($dto)->toBeInstanceOf(SmsApiRequest::class)
+        ->and($dto->type)->toBe('sms')
         ->and($dto->message)->toBe('Example')
         ->and($dto->to)->toBe('+48123123123')
         ->and($dto->from)->toBe('Laravel13')
         ->and($dto->attributes)->toBe(['encoding' => 'utf-8']);
+});
+
+it('can build an mms payload', function (): void {
+    $payload = SmsApiMessage::create()
+        ->to('+48123123123')
+        ->mms('Subject', '<smil/>')
+        ->set('test', true)
+        ->toArray();
+
+    expect($payload)->toEqual([
+        'type' => 'mms',
+        'subject' => 'Subject',
+        'smil' => '<smil/>',
+        'test' => true,
+        'to' => '+48123123123',
+    ]);
+});
+
+it('can convert an mms message to dto', function (): void {
+    $dto = SmsApiMessage::create()
+        ->to('+48123123123')
+        ->mms('Subject', '<smil/>')
+        ->set('test', true)
+        ->toDto();
+
+    expect($dto)->toBeInstanceOf(SmsApiRequest::class)
+        ->and($dto->type)->toBe('mms')
+        ->and($dto->message)->toBe('')
+        ->and($dto->to)->toBe('+48123123123')
+        ->and($dto->subject)->toBe('Subject')
+        ->and($dto->smil)->toBe('<smil/>')
+        ->and($dto->attributes)->toBe(['test' => true]);
 });

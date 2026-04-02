@@ -11,6 +11,8 @@ use NotificationChannels\SmsApi\Contracts\SmsApi as SmsApiContract;
 use NotificationChannels\SmsApi\Dto\SmsApiRequest;
 use NotificationChannels\SmsApi\Dto\SmsApiResponse;
 use NotificationChannels\SmsApi\Exceptions\CouldNotSendNotification;
+use Smsapi\Client\Feature\Mms\Bag\SendMmsBag;
+use Smsapi\Client\Feature\Mms\Data\Mms;
 use Smsapi\Client\Feature\Sms\Bag\SendSmsBag;
 use Smsapi\Client\SmsapiClient as OfficialSmsapiClient;
 use Smsapi\Client\SmsapiClientException;
@@ -59,14 +61,8 @@ final readonly class SmsApi implements SmsApiContract
                 new HttpFactory(),
             );
 
-            $sms = SendSmsBag::withMessage($request->to, $request->message);
-
-            if ($request->from !== null) {
-                $sms->from = $request->from;
-            }
-
-            foreach ($request->attributes as $key => $value) {
-                $sms->{$key} = $value;
+            if ($request->type === 'mms' && $service !== 'pl') {
+                throw CouldNotSendNotification::mmsNotSupportedForService($service);
             }
 
             $serviceClient = match ($service) {
@@ -75,13 +71,49 @@ final readonly class SmsApi implements SmsApiContract
                 default => throw CouldNotSendNotification::unsupportedService($service),
             };
 
-            return SmsApiResponse::fromSmsData(
-                $serviceClient->smsFeature()->sendSms($sms)
-            );
+            return match ($request->type) {
+                'sms' => SmsApiResponse::fromSmsData(
+                    $serviceClient->smsFeature()->sendSms($this->createSmsBag($request))
+                ),
+                'mms' => SmsApiResponse::fromSmsData(
+                    $this->sendMms($serviceClient, $request, $service)
+                ),
+                default => throw CouldNotSendNotification::unsupportedMessageType($request->type),
+            };
         } catch (SmsapiClientException $exception) {
             throw CouldNotSendNotification::smsApiRespondedWithAnError($exception);
         } catch (Exception $exception) {
             throw CouldNotSendNotification::couldNotCommunicateWithSmsApi($exception);
         }
+    }
+
+    private function createSmsBag(SmsApiRequest $request): SendSmsBag
+    {
+        $sms = SendSmsBag::withMessage($request->to, $request->message);
+
+        if ($request->from !== null) {
+            $sms->from = $request->from;
+        }
+
+        foreach ($request->attributes as $key => $value) {
+            $sms->{$key} = $value;
+        }
+
+        return $sms;
+    }
+
+    private function sendMms(object $serviceClient, SmsApiRequest $request, string $service): Mms
+    {
+        if ($request->subject === null || $request->smil === null) {
+            throw CouldNotSendNotification::smsApiMmsPayloadIncomplete();
+        }
+
+        $mms = new SendMmsBag($request->to, $request->subject, $request->smil);
+
+        foreach ($request->attributes as $key => $value) {
+            $mms->{$key} = $value;
+        }
+
+        return $serviceClient->mmsFeature()->sendMms($mms);
     }
 }

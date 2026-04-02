@@ -7,6 +7,8 @@ use NotificationChannels\SmsApi\Dto\SmsApiResponse;
 use NotificationChannels\SmsApi\Exceptions\CouldNotSendNotification;
 use NotificationChannels\SmsApi\SmsApi;
 use NotificationChannels\SmsApi\SmsApiMessage;
+use Smsapi\Client\Feature\Mms\Data\Mms;
+use Smsapi\Client\Feature\Mms\MmsFeature;
 use Smsapi\Client\Feature\Sms\Data\Sms;
 use Smsapi\Client\Feature\Sms\SmsFeature;
 use Smsapi\Client\Service\SmsapiComService;
@@ -162,4 +164,58 @@ it('throws for unsupported service', function (): void {
     expect(fn (): SmsApiResponse => (new SmsApi(Mockery::mock(SmsapiClient::class)))->send(
         SmsApiMessage::create('Test message')->to('+48123123123')
     ))->toThrow(CouldNotSendNotification::class, 'Unsupported SMSAPI service');
+});
+
+it('can send an mms through smsapi pl service', function (): void {
+    $mmsFeature = Mockery::mock(MmsFeature::class);
+    $service = Mockery::mock(SmsapiPlService::class);
+    $client = Mockery::mock(SmsapiClient::class);
+
+    $mms = new Mms();
+    $mms->id = 'mms-1';
+    $mms->points = 2.5;
+    $mms->number = '+48123123123';
+    $mms->status = 'QUEUE';
+
+    $client->shouldReceive('smsapiPlService')
+        ->once()
+        ->with('test-token')
+        ->andReturn($service);
+
+    $service->shouldReceive('mmsFeature')
+        ->once()
+        ->andReturn($mmsFeature);
+
+    $mmsFeature->shouldReceive('sendMms')
+        ->once()
+        ->with(Mockery::on(fn ($bag): bool => $bag->to === '+48123123123'
+            && $bag->subject === 'Invoice'
+            && $bag->smil === '<smil/>'
+            && $bag->test === true))
+        ->andReturn($mms);
+
+    $response = (new SmsApi($client))->send(
+        SmsApiMessage::create()
+            ->to('+48123123123')
+            ->mms('Invoice', '<smil/>')
+            ->set('test', true)
+    );
+
+    expect($response)->toBeInstanceOf(SmsApiResponse::class)
+        ->and($response->decoded)->toBe([
+            'id' => 'mms-1',
+            'points' => 2.5,
+            'number' => '+48123123123',
+            'status' => 'QUEUE',
+        ]);
+});
+
+it('throws when mms is used with smsapi com service', function (): void {
+    config()->set('smsapi.service', 'com');
+
+    expect(fn (): SmsApiResponse => (new SmsApi(Mockery::mock(SmsapiClient::class)))->send(
+        SmsApiMessage::create()
+            ->to('+48123123123')
+            ->mms('Invoice', '<smil/>')
+    ))->toThrow(CouldNotSendNotification::class, 'MMS is only supported for the `pl` SMSAPI service');
 });

@@ -1,6 +1,6 @@
 # SMSAPI Notification Channel for Laravel
 
-This package makes it easy to send notifications using SMSAPI with Laravel 11, 12, and 13.
+This package makes it easy to send SMS and MMS notifications using SMSAPI with Laravel 11, 12, and 13.
 
 ## Installation
 
@@ -51,6 +51,7 @@ The package uses the official `smsapi/php-client` v3 adapter internally.
 - `service=pl` uses `smsapiPlService()`
 - `service=com` uses `smsapiComService()`
 - if `uri` is set, the package uses the matching `*ServiceWithUri()` variant
+- MMS sending is available only for `service=pl`, because the official SMSAPI client exposes `mmsFeature()` only there
 
 ## Response DTO
 
@@ -59,10 +60,10 @@ The channel returns `NotificationChannels\SmsApi\Dto\SmsApiResponse`.
 For real SMSAPI sends the package maps the response returned by `smsapi/php-client` and normalizes it to:
 
 - `statusCode`: local adapter status, currently `200` when the SMSAPI client accepted the send request
-- `decoded.id`: SMS identifier
+- `decoded.id`: SMS/MMS identifier
 - `decoded.points`: charged points
 - `decoded.number`: recipient number
-- `decoded.status`: SMS status returned by SMSAPI
+- `decoded.status`: SMS/MMS status returned by SMSAPI
 - `decoded.idx`: external identifier if present
 - `decoded.date_sent`: ISO-8601 sent date if available
 
@@ -149,3 +150,39 @@ return SmsApiMessage::create('Faktura została opłacona.')
 ```
 
 If you use `to()`, `routeNotificationForSmsApi()` is not required for that notification.
+
+## MMS Usage
+
+To send an MMS, switch the message to MMS mode with `mms($subject, $smil)`:
+
+```php
+use Illuminate\Notifications\Notification;
+use NotificationChannels\SmsApi\SmsApiChannel;
+use NotificationChannels\SmsApi\SmsApiMessage;
+
+class InvoiceWithAttachment extends Notification
+{
+    public function via(object $notifiable): array
+    {
+        return [SmsApiChannel::class];
+    }
+
+    public function toSmsApi(object $notifiable): SmsApiMessage
+    {
+        return SmsApiMessage::create()
+            ->mms('Invoice 2026/04', '<smil><body><par><text src="invoice.txt"/></par></body></smil>')
+            ->set('files[invoice.txt]', base64_encode('Invoice content'));
+    }
+}
+```
+
+You can still use `to()` to set the recipient explicitly:
+
+```php
+return SmsApiMessage::create()
+    ->to('+48123123123')
+    ->mms('Invoice 2026/04', '<smil><body><par><text src="invoice.txt"/></par></body></smil>')
+    ->set('files[invoice.txt]', base64_encode('Invoice content'));
+```
+
+Any additional MMS-specific parameters supported by SMSAPI can be passed with `set($key, $value)`.

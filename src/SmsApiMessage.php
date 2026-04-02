@@ -8,9 +8,15 @@ use NotificationChannels\SmsApi\Dto\SmsApiRequest;
 
 final class SmsApiMessage
 {
+    private string $type = 'sms';
+
     private ?string $recipient = null;
 
     private ?string $from = null;
+
+    private ?string $subject = null;
+
+    private ?string $smil = null;
 
     private array $payload = [];
 
@@ -47,6 +53,15 @@ final class SmsApiMessage
         return $this;
     }
 
+    public function mms(string $subject, string $smil): self
+    {
+        $this->type = 'mms';
+        $this->subject = $subject;
+        $this->smil = $smil;
+
+        return $this;
+    }
+
     public function set(string $key, mixed $value): self
     {
         $this->payload[$key] = $value;
@@ -72,9 +87,12 @@ final class SmsApiMessage
     public function toDto(?string $defaultFrom = null): SmsApiRequest
     {
         return new SmsApiRequest(
+            type: $this->type,
             message: (string) ($this->payload['message'] ?? ''),
             to: $this->recipient,
             from: $this->from ?? $defaultFrom,
+            subject: $this->subject,
+            smil: $this->smil,
             attributes: array_diff_key($this->payload, ['message' => true]),
         );
     }
