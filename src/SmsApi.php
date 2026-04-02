@@ -143,7 +143,7 @@ final readonly class SmsApi implements SmsApiContract
 
     private function loadClassSuppressingDeprecations(string $class): string
     {
-        set_error_handler(static fn(int $errno): bool => $errno === E_DEPRECATED);
+        set_error_handler(static fn (int $errno): bool => $errno === E_DEPRECATED);
 
         try {
             class_exists($class);
