@@ -13,7 +13,6 @@ use NotificationChannels\SmsApi\Dto\SmsApiResponse;
 use NotificationChannels\SmsApi\Exceptions\CouldNotSendNotification;
 use Smsapi\Client\Feature\Mms\Bag\SendMmsBag;
 use Smsapi\Client\Feature\Mms\Data\Mms;
-use Smsapi\Client\Feature\Sms\Bag\SendSmsBag;
 use Smsapi\Client\SmsapiClient as OfficialSmsapiClient;
 use Smsapi\Client\SmsapiClientException;
 use Smsapi\Client\SmsapiHttpClient as OfficialSmsapiHttpClient;
@@ -34,7 +33,7 @@ final readonly class SmsApi implements SmsApiContract
             throw CouldNotSendNotification::smsApiTokenMissing();
         }
 
-        if (! $request->to) {
+        if ($request->to === null || $request->to === []) {
             throw CouldNotSendNotification::smsApiRecipientMissing();
         }
 
@@ -55,6 +54,10 @@ final readonly class SmsApi implements SmsApiContract
         int $timeout,
     ): SmsApiResponse {
         try {
+            if ($request->type === 'mms' && is_array($request->to)) {
+                throw CouldNotSendNotification::bulkMmsNotSupported();
+            }
+
             $client = $this->client ?? new OfficialSmsapiHttpClient(
                 new Client(['timeout' => $timeout]),
                 new HttpFactory(),
@@ -72,9 +75,13 @@ final readonly class SmsApi implements SmsApiContract
             };
 
             return match ($request->type) {
-                'sms' => SmsApiResponse::fromSmsData(
-                    $serviceClient->smsFeature()->sendSms($this->createSmsBag($request))
-                ),
+                'sms' => is_array($request->to)
+                    ? SmsApiResponse::fromSmsList(
+                        $serviceClient->smsFeature()->sendSmss($this->createSmssBag($request))
+                    )
+                    : SmsApiResponse::fromSmsData(
+                        $serviceClient->smsFeature()->sendSms($this->createSmsBag($request))
+                    ),
                 'mms' => SmsApiResponse::fromSmsData(
                     $this->sendMms($serviceClient, $request)
                 ),
@@ -87,9 +94,26 @@ final readonly class SmsApi implements SmsApiContract
         }
     }
 
-    private function createSmsBag(SmsApiRequest $request): SendSmsBag
+    private function createSmsBag(SmsApiRequest $request): object
     {
-        $sms = SendSmsBag::withMessage($request->to, $request->message);
+        $class = $this->loadClassSuppressingDeprecations('Smsapi\\Client\\Feature\\Sms\\Bag\\SendSmsBag');
+        $sms = $class::withMessage($request->to, $request->message);
+
+        if ($request->from !== null) {
+            $sms->from = $request->from;
+        }
+
+        foreach ($request->attributes as $key => $value) {
+            $sms->{$key} = $value;
+        }
+
+        return $sms;
+    }
+
+    private function createSmssBag(SmsApiRequest $request): object
+    {
+        $class = $this->loadClassSuppressingDeprecations('Smsapi\\Client\\Feature\\Sms\\Bag\\SendSmssBag');
+        $sms = $class::withMessage($request->to, $request->message);
 
         if ($request->from !== null) {
             $sms->from = $request->from;
@@ -115,5 +139,20 @@ final readonly class SmsApi implements SmsApiContract
         }
 
         return $serviceClient->mmsFeature()->sendMms($mms);
+    }
+
+    private function loadClassSuppressingDeprecations(string $class): string
+    {
+        set_error_handler(static function (int $errno): bool {
+            return $errno === E_DEPRECATED;
+        });
+
+        try {
+            class_exists($class);
+        } finally {
+            restore_error_handler();
+        }
+
+        return $class;
     }
 }

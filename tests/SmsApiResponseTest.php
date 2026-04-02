@@ -75,3 +75,39 @@ it('can build response dto from smsapi mms data', function (): void {
             'date_sent' => '2026-04-01T10:00:00+00:00',
         ]);
 });
+
+it('can build response dto from smsapi bulk sms data', function (): void {
+    $firstSms = new Sms();
+    $firstSms->id = 'abc123';
+    $firstSms->points = 0.5;
+    $firstSms->number = '+48123123123';
+    $firstSms->status = 'QUEUE';
+
+    $secondSms = new Sms();
+    $secondSms->id = 'def456';
+    $secondSms->points = 0.7;
+    $secondSms->number = '+48999111222';
+    $secondSms->status = 'OK';
+
+    $dto = SmsApiResponse::fromSmsList([$firstSms, $secondSms]);
+
+    expect($dto->statusCode)->toBe(200)
+        ->and($dto->successful())->toBeTrue()
+        ->and($dto->decoded)->toBe([
+            'count' => 2,
+            'results' => [
+                [
+                    'id' => 'abc123',
+                    'points' => 0.5,
+                    'number' => '+48123123123',
+                    'status' => 'QUEUE',
+                ],
+                [
+                    'id' => 'def456',
+                    'points' => 0.7,
+                    'number' => '+48999111222',
+                    'status' => 'OK',
+                ],
+            ],
+        ]);
+});

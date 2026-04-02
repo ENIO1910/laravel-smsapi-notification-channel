@@ -34,20 +34,39 @@ final readonly class SmsApiResponse
     {
         return new self(
             statusCode: 200,
-            decoded: array_filter([
-                'id' => $sms->id ?? null,
-                'points' => $sms->points ?? null,
-                'number' => $sms->number ?? null,
-                'status' => $sms->status ?? null,
-                'idx' => $sms->idx ?? null,
-                'date_sent' => isset($sms->dateSent) ? $sms->dateSent->format(DATE_ATOM) : null,
-                'content' => isset($sms->content) ? get_object_vars($sms->content) : null,
-            ], static fn (mixed $value): bool => $value !== null),
+            decoded: self::normalizeSmsData($sms),
+        );
+    }
+
+    public static function fromSmsList(array $messages): self
+    {
+        return new self(
+            statusCode: 200,
+            decoded: [
+                'count' => count($messages),
+                'results' => array_map(
+                    static fn (Sms|Mms $message): array => self::normalizeSmsData($message),
+                    $messages,
+                ),
+            ],
         );
     }
 
     public function successful(): bool
     {
         return $this->statusCode >= 200 && $this->statusCode < 300;
+    }
+
+    private static function normalizeSmsData(Sms|Mms $sms): array
+    {
+        return array_filter([
+            'id' => $sms->id ?? null,
+            'points' => $sms->points ?? null,
+            'number' => $sms->number ?? null,
+            'status' => $sms->status ?? null,
+            'idx' => $sms->idx ?? null,
+            'date_sent' => isset($sms->dateSent) ? $sms->dateSent->format(DATE_ATOM) : null,
+            'content' => isset($sms->content) ? get_object_vars($sms->content) : null,
+        ], static fn (mixed $value): bool => $value !== null);
     }
 }

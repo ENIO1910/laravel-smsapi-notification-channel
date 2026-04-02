@@ -55,6 +55,22 @@ it('can use explicit recipient from message', function (): void {
     expect($response->statusCode)->toEqual(200);
 });
 
+it('can use multiple recipients from notifiable route', function (): void {
+    $this->smsApi
+        ->shouldReceive('send')
+        ->once()
+        ->with(Mockery::on(fn (SmsApiMessage $sentMessage): bool => $sentMessage->toArray()['to'] === [
+            '+48123123123',
+            '+48999111222',
+        ]))
+        ->andReturn(new SmsApiResponse(200));
+
+    $channel = new SmsApiChannel($this->smsApi);
+    $response = $channel->send(new TestNotifiableWithBulkRoute, new TestNotification);
+
+    expect($response->statusCode)->toEqual(200);
+});
+
 final class TestNotifiable
 {
     use Notifiable;
@@ -68,6 +84,16 @@ final class TestNotifiable
 final class TestNotifiableWithoutRoute
 {
     use Notifiable;
+}
+
+final class TestNotifiableWithBulkRoute
+{
+    use Notifiable;
+
+    public function routeNotificationForSmsApi(): array
+    {
+        return ['+48123123123', '+48999111222'];
+    }
 }
 
 final class TestNotification extends Notification
