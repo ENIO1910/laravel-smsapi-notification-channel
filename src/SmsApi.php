@@ -76,7 +76,7 @@ final readonly class SmsApi implements SmsApiContract
                     $serviceClient->smsFeature()->sendSms($this->createSmsBag($request))
                 ),
                 'mms' => SmsApiResponse::fromSmsData(
-                    $this->sendMms($serviceClient, $request, $service)
+                    $this->sendMms($serviceClient, $request)
                 ),
                 default => throw CouldNotSendNotification::unsupportedMessageType($request->type),
             };
@@ -102,7 +102,7 @@ final readonly class SmsApi implements SmsApiContract
         return $sms;
     }
 
-    private function sendMms(object $serviceClient, SmsApiRequest $request, string $service): Mms
+    private function sendMms(object $serviceClient, SmsApiRequest $request): Mms
     {
         if ($request->subject === null || $request->smil === null) {
             throw CouldNotSendNotification::smsApiMmsPayloadIncomplete();
