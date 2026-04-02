@@ -5,7 +5,7 @@ This package makes it easy to send SMS and MMS notifications using SMSAPI with L
 ## Installation
 
 ```bash
-composer require patrykstaniewski/laravel-smsapi-notification-channel
+composer require enio1910/laravel-smsapi-notification-channel
 ```
 
 If you are using Laravel without package auto-discovery, add the service provider to `config/app.php`:
